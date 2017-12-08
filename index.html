@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Search me</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+
+<style>
+body {
+  padding-top: 50px;
+}   
+.block {
+  height: 150px;
+  padding-top: 1px;  
+  padding: 5px;
+}  
+.block2 {
+  min-height: 120px;
+  padding-top: 15px; 
+} 
+.center {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: auto;  
+}
+.results{
+	min-height: 5em;
+}
+.pic{
+	margin-right: 20px;
+	width: 80px;
+	height: 50px;
+}
+.pic img {
+	border-radius: 50px;
+   	height: 100%;
+   	width: 100%;
+}
+.panel-heading{
+	padding: 0;
+	padding-top: 5px;
+}
+.panel-body{
+	padding: 2px;
+	padding-top: 5px;
+}
+</style>
+
+</head>
+
+<body>
+<section>
+    <div class="container col-lg-12 block">
+        
+        <div class="row col-xs-8 block2  center">
+            
+            <div align="center" >
+                <label class="control-label col-sm-3" >Search</label>
+                <div class="col-sm-8 col-xs-12">
+                    <input type="text" name="query" placeholder="Find tweets"  class="form-control" id="search"/>
+                </div>
+       
+                <div class="col-sm-offset-2 col-sm-8">  
+                	<br>
+                    <input type="submit" name="signin" id="signin" value="Search" class="btn btn-default"   />
+                </div>  
+      		</div>
+        </div>
+    </div>
+</section>
+<section>
+	<div class="container col-lg-12">
+		<div class="row col-xs-8 results center" id="output">
+
+		</div>
+	</div>
+
+</section>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+	<script>
+
+	function makenewentry(text,uname,imgurl,sname,i){
+		var pbody=document.createElement("div");  
+		pbody.setAttribute("class","panel-body");
+			var pbodycontent=document.createElement("div");
+			pbodycontent.setAttribute("class","col-xs-8");
+			var id="pbody"+i;
+			pbodycontent.setAttribute("id",id);
+			pbodycontent.innerHTML=text;
+		pbody.appendChild(pbodycontent);
+			
+		
+			var pbodyButton=document.createElement("div");
+			pbodyButton.setAttribute("class","col-xs-4");
+				var buttondiv=document.createElement("div");
+				buttondiv.setAttribute("class","pull-right");
+					var savebutton=document.createElement("button");
+					savebutton.setAttribute("class","btn btn-primary");
+					savebutton.setAttribute("onclick","savetweets("+i+")");
+					savebutton.appendChild(document.createTextNode("Save"));
+				pbodyButton.appendChild(savebutton);
+			pbody.appendChild(pbodyButton);
+
+
+
+		var phead=document.createElement("div");
+		phead.setAttribute("class","panel-heading row")
+		pheadtitle=document.createElement("div");
+		pheadtitle.setAttribute("class","col-xs-8");
+		id="phead"+i;
+		pheadtitle.setAttribute("id",id);
+		pheadtitle.innerHTML="<h3>"+uname+"</h3> "+sname;
+		phead.appendChild(pheadtitle);
+
+		var pheaddiv=document.createElement("div");
+		pheaddiv.setAttribute("class","col-xs-4 pic pull-right")
+
+		pheadimg=document.createElement("img");
+		pheadimg.setAttribute("src",imgurl);
+		pheaddiv.appendChild(pheadimg);
+		phead.appendChild(pheaddiv);
+		var newentry=document.createElement("div");
+		newentry.setAttribute("class","panel panel-info container-fluid");
+		id="entry"+i;
+		newentry.setAttribute("id",id);
+		newentry.appendChild(phead);
+		newentry.appendChild(pbody);
+		document.getElementById("output").appendChild(newentry);
+	}
+	$(document).ready(function(){
+		$("#signin").click(function(){
+
+		var data=document.getElementById("search").value;
+		data=data.replace(/#/g,"%23");
+	    var xmlhttp = new XMLHttpRequest();
+	    xmlhttp.onreadystatechange = function() {
+
+	   		if (this.readyState == 4 && this.status == 200) {
+	            var feed=JSON.parse(this.responseText);
+	            console.log(feed);
+	            feed=feed.statuses;
+	            document.getElementById("output").innerHTML="";
+	            for (var i = 0;i<feed.length;i++) {
+	            	var text=feed[i].text;
+	    			var uname=feed[i].user.name;
+	    			var sname="@"+feed[i].user.screen_name;
+	    			var imgurl=feed[i].user.profile_image_url_https;
+	            	makenewentry(text,uname,imgurl,sname,i);
+			    }
+	    		
+	   		}
+	    }
+	    	xmlhttp.open("GET", "getResult.php?q="+data, true);
+	        xmlhttp.send();
+	});
+		//$("#output btn").click(function(){
+
+			//});
+	});
+	
+
+	function savetweets(i){
+
+		var uname=document.getElementById("phead"+i).innerHTML;	    	
+	    var text=document.getElementById("pbody"+i).innerHTML;
+	    text=text.replace(/#/g,"%23");
+	    
+	    var l=uname.indexOf("</");
+	    uname=uname.substr(4,l-4);
+	    uname=uname.replace(/#/g,"%23");
+
+	    var xmlhttp = new XMLHttpRequest();
+	    xmlhttp.onreadystatechange = function() {
+	    	
+
+	   		if (this.readyState == 4 && this.status == 200) {
+	   				
+	            	if(this.responseText==1)
+	            	{
+	            		var id="#"+"entry"+i;
+	            		$(id).fadeOut(2000);
+	            		//document.getElementById(id).style.display="none";
+	            		alert("Successful");
+	            	}
+	            	else{
+	            		alert(this.responseText);
+	            	}
+	            }
+	    		
+	   		}
+	    	xmlhttp.open("post", "save.php?text="+text+"&uname="+uname, true);
+	        xmlhttp.send();
+	    }
+	</script>
+    
+
+</body>
+</html>
